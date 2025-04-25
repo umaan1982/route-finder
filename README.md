@@ -1,5 +1,9 @@
 # 🚄 Hamburg ⇄ Amsterdam: Smart Train Finder
 
+## Deployed Project
+
+[Click here to see the deployed project](https://route-finder-wine.vercel.app/)
+
 ## 🎥 Demo Walkhthrough
 
 [Click here to watch the recorded meeting](https://khiibaedu-my.sharepoint.com/personal/u_ahmed_17857_khi_iba_edu_pk/_layouts/15/stream.aspx?id=%2Fpersonal%2Fu%5Fahmed%5F17857%5Fkhi%5Fiba%5Fedu%5Fpk%2FDocuments%2FRecordings%2FMeeting%20with%20USMAN%20AHMED%20SAEED%2D17857%2D20250425%5F223439%2DMeeting%20Recording%2Emp4&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E2bd77c94%2D6f7e%2D471f%2D8513%2D96d7db6662b1)
@@ -55,12 +59,16 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
  - User bahn.expert/routing internal api to get data
  - Use trainline API by reverse-engineering which does not work as it shows 401
  - Using puppeteer on trainline to get data which did not.
+ - After running on localhost, the internal DB API failed on cloud deployments, which required some creative engineering.
 
 ## ✅ My successful attempt.
 
  - Used DB Internal api to get the result and show it.
  - Parse the results into objects and extract relevant information relating to the project.
  - Reverse-engineered to get the internal API and make it work with Nuxt.
+ - Set up a reverse proxy server on a machine that me and my friends use for video game server hosting, hosted my proxy server there and exposed a single API which gets us the response.
+ - In the project, change the code to actually call the proxy server and get the result instead of calling the API itself.
+ - Used ngrok to establish a reverse proxy.
 
 ## File Comments
 
