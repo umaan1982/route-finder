@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const client = axios.create({ withCredentials: true }); // Enable sending cookies
 
-const ngrokUrl = "https://9b8f-2a02-908-e30-ce20-d0a2-8669-4513-5a7.ngrok-free.app"
+const ngrokUrl =  process.env.NGROK_URL
 
 export default defineEventHandler(async (event) => {
   const { date } = getQuery(event);
