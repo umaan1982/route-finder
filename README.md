@@ -34,7 +34,7 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
 
 1. Clone repo:
    ```bash
-   git clone [https://github.com/your-username/ham-ams-train-finder.git](https://github.com/umaan1982/route-finder.git)
+   git clone https://github.com/umaan1982/route-finder.git
 
 2. Install packages
    ```bash
