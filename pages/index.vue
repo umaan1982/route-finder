@@ -23,19 +23,20 @@ async function searchRoutes() {
   isLoading.value = true
 
   try {
+
     const outbound = await $fetch('/api/ham-amst-bahn-routing', {
       params: {
         date: departureDate.value + "T00:00:00",
       }
     })
 
-    outboundResults.value = (outbound as any)?.result?.verbindungen || []
+    outboundResults.value = (outbound as any)?.verbindungen || []
     localStorage.setItem('train-outbound', JSON.stringify(outboundResults.value))
 
-    let returnQuery = {}
+    let returnDateToUse = ''
 
     if (tripType.value === 'roundtrip') {
-      const returnDateToUse =
+      returnDateToUse =
         returnInputType.value === 'date'
           ? returnDate.value
           : new Date(new Date(departureDate.value).setDate(new Date(departureDate.value).getDate() + Number(overnightStays.value)))
@@ -48,19 +49,15 @@ async function searchRoutes() {
         }
       })
 
-      returnResults.value = (returnRes as any)?.result?.verbindungen || []
+      returnResults.value = (returnRes as any)?.verbindungen || []
       localStorage.setItem('train-return', JSON.stringify(returnResults.value))
-
-      returnQuery =
-        returnInputType.value === 'date'
-          ? { return: returnDate.value }
-          : { overnight: overnightStays.value.toString() }
     }
 
     const query: Record<string, string> = {
       tripType: tripType.value,
       departure: departureDate.value,
-      ...returnQuery
+      ...(returnDateToUse ? { return: returnDateToUse } : {}),
+      ...(returnInputType.value === 'overnight' ? { overnight: overnightStays.value.toString() } : {})
     }
 
     router.push({ path: '/results', query })

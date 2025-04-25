@@ -9,6 +9,13 @@ const goBack = () => router.back()
 const sortBy = ref('price')
 const tripType = ref(route.query.tripType || 'one-way')
 
+const departureDate = ref<string | null>(route.query.departure as string || null)
+const returnDate = ref<string | null>(
+  tripType.value === 'roundtrip' && 'return' in route.query
+    ? (route.query.return as string)
+    : null
+)
+
 const outboundTrips = ref<any[]>([])
 const returnTrips = ref<any[]>([])
 
@@ -92,13 +99,26 @@ function formatTimeRange(trip: any) {
   const arr = last.ankunftsZeitpunkt?.slice(11, 16)
   return `${dep} → ${arr}`
 }
-
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
     <div class="w-full max-w-4xl space-y-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
-
+      <!-- Dates Info -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-100 p-4 rounded-lg text-gray-700">
+        <div v-if="departureDate" class="flex items-center gap-2">
+          <span class="font-semibold text-blue-700">🚉 Departure:</span>
+          <span class="text-gray-800">
+            {{ new Date(departureDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+          </span>
+        </div>
+        <div v-if="tripType === 'roundtrip' && returnDate" class="flex items-center gap-2 mt-2 sm:mt-0">
+          <span class="font-semibold text-green-700">🏠 Return:</span>
+          <span class="text-gray-800">
+            {{ new Date(returnDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+          </span>
+        </div>
+      </div>
       <!-- Header + Go Back -->
       <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-gray-800">🚆 Available Train Routes</h2>
