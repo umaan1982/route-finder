@@ -3,13 +3,12 @@
 [![Deployment Status](https://img.shields.io/badge/deployed%20on-Vercel-black?style=flat&logo=vercel)](https://your-deployment-link.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A web scraping solution to find optimal train connections between Hamburg and Amsterdam using Puppeteer.
+Solution to use the internal DB Api to get the connection between Hamburg and Amsterdam
 
 ![Project Screenshot](./screenshot.png) <!-- Add actual screenshot path -->
 
 ## 🌟 Features
 
-- **Real-time train data scraping** using Puppeteer
 - Compare **cheapest** vs **fastest** routes
 - Roundtrip planning with customizable overnight stays
 - Clean UI with tabular results display
@@ -17,11 +16,9 @@ A web scraping solution to find optimal train connections between Hamburg and Am
 
 ## 🛠 Tech Stack
 
-- **Web Scraping**: Puppeteer
 - **Frontend**: Next.js/React
 - **Backend**: Node.js
 - **Deployment**: Vercel
-- **Utilities**: Cheerio (for HTML parsing), Moment.js (date handling)
 
 ## 🚀 Quick Start
 
