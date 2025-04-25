@@ -57,3 +57,15 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
  - Used DB Internal api to get the result and show it.
  - Parse the results into objects and extract relevant information relating to the project.
  - Reverse-engineered to get the internal API and make it work with Nuxt.
+
+## File Comments
+
+ - Index.vue is the main display page of the app that displays the form and calls the API to get search result from Hamburg To Amsterdam (one-way), and Amsterdam to Hamburg (roundtrip).
+ - Then redirects the user to another page that is results.vue
+ - Results.vue displays the trips, offer client-side rendering, and also offers sort by Price, Duration, Least Transfer Changes.
+ - Has a GoBack to redirect back to Index.vue.
+ - /server/api contains two api files that are being used.
+ - /server/api/trainline contains three files which were being tested to get data (Puppeteer & API calls)
+ - /layouts/default.vue contains the Header of the Project.
+ - /composables contains another api call that was being tested for Location search.
+ - /assets/css/tailwind.css contains the configuration for tailwind in the project.
