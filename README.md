@@ -43,3 +43,17 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
 3. Run the server
    ```bash
    npm run dev
+
+## ❌ My failed attempts to get data
+
+ - Use Amadeus without researching properly that their rail API is enterprise level.
+ - Use puppeteer to get data from bahn.expert/routing
+ - User bahn.expert/routing internal api to get data
+ - Use trainline API by reverse-engineering which does not work as it shows 401
+ - Using puppeteer on trainline to get data which did not.
+
+## ✅ My successful attempt.
+
+ - Used DB Internal api to get the result and show it.
+ - Parse the results into objects and extract relevant information relating to the project.
+ - Reverse-engineered to get the internal API and make it work with Nuxt.
