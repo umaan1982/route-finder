@@ -5,7 +5,7 @@
 
 Solution to use the internal DB Api to get the connection between Hamburg and Amsterdam
 
-![Project Screenshot](./screenshot.png) <!-- Add actual screenshot path -->
+![Project Screenshot](./main-screenshot.png) <!-- Add actual screenshot path -->
 
 ## 🌟 Features
 
