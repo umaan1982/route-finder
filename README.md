@@ -81,3 +81,13 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
  - /layouts/default.vue contains the Header of the Project.
  - /composables contains another api call that was being tested for Location search.
  - /assets/css/tailwind.css contains the configuration for tailwind in the project.
+
+# 🚄💨 Getting Bahn.de Connections: A Simple Journey 💨🚄
+
+Our app gets train info in this straightforward way:
+
+**Vercel App** ➡️ **Our Reverse Proxy Server** ➡️ **Deutsche Bahn (DB) API**
+
+And the information comes back the same way! ↩️
+
+Easy peasy! 😉
