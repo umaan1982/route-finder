@@ -1,12 +1,9 @@
 import { defineEventHandler, getQuery, createError, setResponseHeaders } from 'h3';
 import axios from 'axios';
-// @ts-ignore
-import { wrapper } from 'axios-cookiejar-support';
-import { CookieJar } from 'tough-cookie';
 
-const cookieJar = new CookieJar();
-const client = wrapper(axios.create({ withCredentials: true })); // Enable sending cookies
-client.defaults.jar = cookieJar; // Attach the cookie jar separately
+const client = axios.create({ withCredentials: true }); // Enable sending cookies
+
+const ngrokUrl = "https://9b8f-2a02-908-e30-ce20-d0a2-8669-4513-5a7.ngrok-free.app"
 
 export default defineEventHandler(async (event) => {
   const { date } = getQuery(event);
@@ -19,7 +16,7 @@ export default defineEventHandler(async (event) => {
     // Attempt to get initial cookies (optional, but might help)
     // await client.get("https://int.bahn.de/");
 
-    const response = await client.post("https://int.bahn.de/web/api/angebote/fahrplan", {
+    const response = await client.post(`${ngrokUrl}/bahn-fahrplan`, {
       abfahrtsHalt: "A=1@O=Hamburg Hbf@X=10006909@Y=53552733@U=80@L=8002549@B=1@p=1742845592@i=U×008001071@",
       anfrageZeitpunkt: `${date}`,
       ankunftsHalt: "A=1@O=AMSTERDAM@X=4881700@Y=52361653@U=80@L=8496058@B=1@p=1743636196@",
