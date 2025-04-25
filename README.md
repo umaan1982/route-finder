@@ -1,5 +1,9 @@
 # 🚄 Hamburg ⇄ Amsterdam: Smart Train Finder
 
+## 🎥 Demo Walkhthrough
+
+[Click here to watch the recorded meeting](https://khiibaedu-my.sharepoint.com/personal/u_ahmed_17857_khi_iba_edu_pk/_layouts/15/stream.aspx?id=%2Fpersonal%2Fu%5Fahmed%5F17857%5Fkhi%5Fiba%5Fedu%5Fpk%2FDocuments%2FRecordings%2FMeeting%20with%20USMAN%20AHMED%20SAEED%2D17857%2D20250425%5F223439%2DMeeting%20Recording%2Emp4&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E2bd77c94%2D6f7e%2D471f%2D8513%2D96d7db6662b1)
+
 [![Deployment Status](https://img.shields.io/badge/deployed%20on-Vercel-black?style=flat&logo=vercel)](https://your-deployment-link.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
