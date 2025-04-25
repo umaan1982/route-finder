@@ -26,8 +26,8 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js/React
-- **Backend**: Node.js
+- **Frontend**: Vue js
+- **Backend**: Nuxt
 - **Deployment**: Vercel
 
 ## 🚀 Quick Start
