@@ -13,7 +13,6 @@ A web scraping solution to find optimal train connections between Hamburg and Am
 - Compare **cheapest** vs **fastest** routes
 - Roundtrip planning with customizable overnight stays
 - Clean UI with tabular results display
-- Automated schedule checking with smart caching
 - Filters for duration, price, and number of changes
 
 ## 🛠 Tech Stack
@@ -29,3 +28,11 @@ A web scraping solution to find optimal train connections between Hamburg and Am
 1. Clone repo:
    ```bash
    git clone https://github.com/your-username/ham-ams-train-finder.git
+
+2. Install packages
+   ```bash
+   npm i
+
+3. Run the server
+   ```bash
+   npm run dev
