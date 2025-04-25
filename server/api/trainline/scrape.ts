@@ -19,21 +19,18 @@ export default defineEventHandler(async (event) => {
       waitUntil: 'networkidle2'
     })
 
-    // Fill in From (Hamburg Hbf)
     await page.waitForSelector('[data-testid="jsf-origin"]', { visible: true })
     await page.click('[data-testid="jsf-origin"]', { clickCount: 3 })
     await page.keyboard.type('Hamburg Hbf')
     await new Promise(resolve => setTimeout(resolve, 500))
     await page.keyboard.press('Enter')
 
-    // Fill in To (Amsterdam Centraal)
     await page.waitForSelector('[data-testid="jsf-destination"]', { visible: true })
     await page.click('[data-testid="jsf-destination"]', { clickCount: 3 })
     await page.keyboard.type('Amsterdam Centraal')
     await new Promise(resolve => setTimeout(resolve, 500))
     await page.keyboard.press('Enter')
 
-    // Open date picker and select departure
     await page.waitForSelector('[data-testid="jsf-outbound-time"]', { visible: true })
     await page.click('[data-testid="jsf-outbound-time"]')
     await new Promise(resolve => setTimeout(resolve, 500))

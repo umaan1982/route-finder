@@ -1,211 +1,212 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
 const goBack = () => router.back()
 
-const tripType = route.query.tripType || 'one-way'
-const departure = (route.query.departure as string) || ''
-const returnDateFromQuery = route.query.return || ''
-const overnight = route.query.overnight || ''
 const sortBy = ref('price')
+const tripType = ref(route.query.tripType || 'one-way')
 
-const calculatedReturnDate = overnight ? calculateReturnDate() : returnDateFromQuery
+const outboundTrips = ref<any[]>([])
+const returnTrips = ref<any[]>([])
 
-function calculateReturnDate(): string | null {
-  if (!departure || !overnight) return null
-  const depDate = new Date(departure)
-  depDate.setDate(depDate.getDate() + parseInt(overnight as string))
-  return depDate.toISOString().split('T')[0]
-}
+const showMoreOutbound = ref(false)
+const showMoreReturn = ref(false)
 
-function formatDateWithDay(dateStr: string | null): string {
-  if (!dateStr) return 'Not specified'
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(undefined, {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+const limitedOutbound = computed(() =>
+  showMoreOutbound.value ? sortedOutbound.value : sortedOutbound.value.slice(0, 3)
+)
 
-const outboundOptions = ref<any[]>([])
-const returnOptions = ref<any[]>([])
+const limitedReturn = computed(() =>
+  showMoreReturn.value ? sortedReturn.value : sortedReturn.value.slice(0, 3)
+)
 
 onMounted(() => {
   const outboundRaw = localStorage.getItem('train-outbound')
   if (outboundRaw) {
-    const parsed = JSON.parse(outboundRaw)
-    outboundOptions.value = parsed.journeys || []
+    try {
+      outboundTrips.value = JSON.parse(outboundRaw)
+    } catch (e) {
+      console.error('Failed to parse outbound:', e)
+    }
   }
 
-  const returnRaw = localStorage.getItem('train-return')
-  if (returnRaw) {
-    const parsed = JSON.parse(returnRaw)
-    returnOptions.value = parsed.journeys || []
+  if (tripType.value === 'roundtrip') {
+    const returnRaw = localStorage.getItem('train-return')
+    if (returnRaw) {
+      try {
+        returnTrips.value = JSON.parse(returnRaw)
+      } catch (e) {
+        console.error('Failed to parse return:', e)
+      }
+    }
   }
 })
 
-function getPrice(journey: any) {
-  return journey?.price?.amount || 0
-}
-
-function getDuration(journey: any) {
-  return journey?.duration || 0
-}
-
-function getChanges(journey: any) {
-  return journey?.legs?.length > 0 ? journey.legs.length - 1 : 0
-}
-
-// Sorting
-const sortedOutbound = computed(() => {
-  return [...outboundOptions.value].sort((a, b) => {
-    if (sortBy.value === 'price') return getPrice(a) - getPrice(b)
-    if (sortBy.value === 'duration') return getDuration(a) - getDuration(b)
-    if (sortBy.value === 'changes') return getChanges(a) - getChanges(b)
+function sortTrips(trips: any[]) {
+  return [...trips].sort((a, b) => {
+    if (sortBy.value === 'price') {
+      const priceA = a.angebotsPreis?.betrag ?? Infinity
+      const priceB = b.angebotsPreis?.betrag ?? Infinity
+      return priceA - priceB
+    }
+    if (sortBy.value === 'duration') {
+      return a.verbindungsDauerInSeconds - b.verbindungsDauerInSeconds
+    }
+    if (sortBy.value === 'changes') {
+      return a.umstiegsAnzahl - b.umstiegsAnzahl
+    }
     return 0
   })
-})
+}
 
-const sortedReturn = computed(() => {
-  return [...returnOptions.value].sort((a, b) => {
-    if (sortBy.value === 'price') return getPrice(a) - getPrice(b)
-    if (sortBy.value === 'duration') return getDuration(a) - getDuration(b)
-    if (sortBy.value === 'changes') return getChanges(a) - getChanges(b)
-    return 0
-  })
-})
+const sortedOutbound = computed(() => sortTrips(outboundTrips.value))
+const sortedReturn = computed(() => sortTrips(returnTrips.value))
 
-function formatTimeRange(journey: any) {
-  const dep = journey.departureDateTime?.slice(11, 16) || '--:--'
-  const arr = journey.arrivalDateTime?.slice(11, 16) || '--:--'
+function getTrainPath(trip: any) {
+  const sections = trip.verbindungsAbschnitte
+  if (!sections?.length) return '—'
+
+  const start = sections[0].abfahrtsOrt
+  const middle = sections.slice(1).map((s: any) => s.abfahrtsOrt)
+  const end = sections.at(-1)?.ankunftsOrt
+
+  return [start, ...middle, end].join(' → ')
+}
+
+function formatDuration(seconds: number) {
+  const mins = Math.floor(seconds / 60)
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return `${h}h ${m}m`
+}
+
+function formatTimeRange(trip: any) {
+  const first = trip.verbindungsAbschnitte?.[0]
+  const last = trip.verbindungsAbschnitte?.at(-1)
+  if (!first || !last) return '--:-- → --:--'
+
+  const dep = first.abfahrtsZeitpunkt?.slice(11, 16)
+  const arr = last.ankunftsZeitpunkt?.slice(11, 16)
   return `${dep} → ${arr}`
 }
 
-function formatDuration(totalMinutes: number): string {
-  const h = Math.floor(totalMinutes / 60)
-  const m = totalMinutes % 60
-  return `${h}h ${m}m`
-}
 </script>
-
 
 <template>
   <div class="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
     <div class="w-full max-w-4xl space-y-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
 
-      <!-- Header -->
-      <div class="space-y-2">
-        <h2 class="text-3xl font-bold text-gray-800">
-          🚆 Train Options:
-          <span class="text-blue-600">
-            {{ tripType === 'roundtrip' ? 'Roundtrip' : 'One-way' }}
-          </span>
-        </h2>
-
-        <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
-          <span>
-            <span class="font-medium text-gray-800">Departure:</span>
-            <strong>{{ formatDateWithDay(departure as string) }}</strong>
-          </span>
-          <br v-if="tripType === 'roundtrip'" />
-          <span v-if="tripType === 'roundtrip'">
-            <span class="font-medium text-gray-800">Return:</span>
-            <strong>{{ formatDateWithDay(calculatedReturnDate as string | null) }}</strong>
-          </span>
-        </p>
-      </div>
-
-      <!-- Go Back Button -->
-      <div>
+      <!-- Header + Go Back -->
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-800">🚆 Available Train Routes</h2>
         <button
           @click="goBack"
-          class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md border border-blue-100 hover:bg-blue-100 hover:text-blue-700 transition"
+          class="text-sm text-blue-600 hover:underline"
         >
           ← Go Back
         </button>
       </div>
 
-      <!-- Sorting -->
-      <div class="flex items-center gap-4">
-        <label class="text-sm font-medium text-gray-700">Sort by:</label>
-        <select
-          v-model="sortBy"
-          class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="price">Cheapest</option>
-          <option value="duration">Fastest</option>
-          <option value="changes">Least changes</option>
+      <!-- Sort -->
+      <div class="flex items-center gap-3">
+        <label class="text-sm text-gray-700">Sort by:</label>
+        <select v-model="sortBy" class="border px-2 py-1 rounded text-sm">
+          <option value="price">Price</option>
+          <option value="duration">Duration</option>
+          <option value="changes">Changes</option>
         </select>
       </div>
 
-      <!-- Outbound Trip -->
-      <div class="space-y-3">
-        <h3 class="text-xl font-semibold text-gray-800">Outbound Trip</h3>
-        <p class="text-sm text-gray-500">From Hamburg to Amsterdam</p>
+      <!-- Outbound Trips -->
+      <div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Outbound Trip (Hamburg → Amsterdam)</h3>
 
-        <div class="grid gap-4">
+        <div v-if="sortedOutbound.length === 0" class="text-sm text-red-500">No outbound trips found.</div>
+
+        <div v-else class="space-y-4">
           <div
-            v-for="(option, index) in sortedOutbound"
+            v-for="(trip, index) in limitedOutbound"
             :key="'outbound-' + index"
-            class="p-4 border rounded-xl shadow-sm bg-white hover:shadow-md transition"
+            class="p-4 border rounded-lg bg-gray-50 hover:shadow transition"
           >
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-start">
               <div>
-                <p class="font-medium text-gray-800">Option #{{ index + 1 }}</p>
-                <p class="text-sm text-gray-600">
-                  {{ option.legs[0]?.transportation?.mode || 'Train' }} |
-                  {{ option.legs.length - 1 }} changes
-                </p>
+                <p class="font-semibold text-gray-800">Option #{{ index + 1 }}</p>
+                <p class="text-sm text-gray-600">{{ trip.umstiegsAnzahl }} changes</p>
+                <p class="text-xs text-gray-500 mt-1">{{ getTrainPath(trip) }}</p>
               </div>
               <div class="text-right">
-                <p class="text-lg font-bold text-blue-700">€{{ getPrice(option) }}</p>
-                <p class="text-sm text-gray-600">{{ formatDuration(option.duration) }}</p>
+                <p class="text-blue-700 font-bold text-lg">
+                  €{{ trip.angebotsPreis?.betrag?.toFixed(2) || '—' }}
+                </p>
+                <p class="text-sm text-gray-600">{{ formatDuration(trip.verbindungsDauerInSeconds || 0) }}</p>
               </div>
             </div>
-            <div class="mt-2 text-sm text-gray-500">
-              {{ formatTimeRange(option) }}
+            <div class="mt-1 text-sm text-gray-500">
+              {{ formatTimeRange(trip) }}
             </div>
           </div>
         </div>
+
+        <div v-if="sortedOutbound.length > 3" class="text-center mt-2">
+          <button
+            @click="showMoreOutbound = !showMoreOutbound"
+            class="text-blue-600 text-sm hover:underline"
+          >
+          {{ showMoreOutbound ? 'Show less' : 'Show more' }}
+          </button>
+        </div>
       </div>
 
-      <!-- Return Trip -->
-      <div v-if="tripType === 'roundtrip'" class="space-y-3">
-        <h3 class="text-xl font-semibold text-gray-800">Return Trip</h3>
-        <p class="text-sm text-gray-500">From Amsterdam to Hamburg</p>
+      <!-- Return Trips -->
+      <div v-if="tripType === 'roundtrip'">
+        <h3 class="text-xl font-semibold text-gray-800 mt-10 mb-2">Return Trip (Amsterdam → Hamburg)</h3>
 
-        <div class="grid gap-4">
+        <div v-if="sortedReturn.length === 0" class="text-sm text-red-500">No return trips found.</div>
+
+        <div v-else class="space-y-4">
           <div
-            v-for="(option, index) in sortedReturn"
+            v-for="(trip, index) in limitedReturn"
             :key="'return-' + index"
-            class="p-4 border rounded-xl shadow-sm bg-white hover:shadow-md transition"
+            class="p-4 border rounded-lg bg-gray-50 hover:shadow transition"
           >
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-start">
               <div>
-                <p class="font-medium text-gray-800">Option #{{ index + 1 }}</p>
-                <p class="text-sm text-gray-600">
-                  {{ option.legs[0]?.transportation?.mode || 'Train' }} |
-                  {{ option.legs.length - 1 }} changes
-                </p>
+                <p class="font-semibold text-gray-800">Option #{{ index + 1 }}</p>
+                <p class="text-sm text-gray-600">{{ trip.umstiegsAnzahl }} changes</p>
+                <p class="text-xs text-gray-500 mt-1">{{ getTrainPath(trip) }}</p>
               </div>
               <div class="text-right">
-                <p class="text-lg font-bold text-blue-700">€{{ getPrice(option) }}</p>
-                <p class="text-sm text-gray-600">{{ formatDuration(option.duration) }}</p>
+                <p class="text-blue-700 font-bold text-lg">
+                  €{{ trip.angebotsPreis?.betrag?.toFixed(2) || '—' }}
+                </p>
+                <p class="text-sm text-gray-600">{{ formatDuration(trip.verbindungsDauerInSeconds || 0) }}</p>
               </div>
             </div>
-            <div class="mt-2 text-sm text-gray-500">
-              {{ formatTimeRange(option) }}
+            <div class="mt-1 text-sm text-gray-500">
+              {{ formatTimeRange(trip) }}
             </div>
           </div>
+        </div>
+
+        <div v-if="sortedReturn.length > 3" class="text-center mt-2">
+          <button
+            @click="showMoreReturn = !showMoreReturn"
+            class="text-blue-600 text-sm hover:underline"
+          >
+          {{ showMoreReturn ? 'Show less' : 'Show more' }}
+          </button>
         </div>
       </div>
 
     </div>
   </div>
 </template>
+
+
+
+
 

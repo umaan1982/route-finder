@@ -9,6 +9,7 @@ const returnInputType = ref<'date' | 'overnight'>('date')
 const overnightStays = ref(1)
 const router = useRouter()
 const today = new Date().toISOString().split('T')[0]
+const isLoading = ref(false)
 
 const outboundResults = useState<any[]>('outboundResults')
 const returnResults = useState<any[]>('returnResults')
@@ -19,48 +20,56 @@ async function searchRoutes() {
     return
   }
 
-  const outbound = await $fetch('/api/trainline/scrape', {
-    query: { departure: departureDate.value }
-  })
+  isLoading.value = true
 
-  if ('results' in outbound && outbound.success) {
-    outboundResults.value = outbound.results
-  } else {
-    console.error('Outbound scrape failed:', outbound)
-    outboundResults.value = []
-  }
-
-  let returnQuery = {}
-
-  if (tripType.value === 'roundtrip') {
-    const returnDateToUse = returnInputType.value === 'date'
-      ? returnDate.value
-      : new Date(new Date(departureDate.value).setDate(new Date(departureDate.value).getDate() + Number(overnightStays.value)))
-          .toISOString().split('T')[0]
-
-    const returnRes = await $fetch('/api/trainline/scrape', {
-      query: { departure: returnDateToUse }
+  try {
+    const outbound = await $fetch('/api/ham-amst-bahn-routing', {
+      params: {
+        date: departureDate.value + "T00:00:00",
+      }
     })
 
-    if ('results' in returnRes && returnRes.success) {
-      returnResults.value = returnRes.results
-    } else {
-      console.error('Return scrape failed:', returnRes)
-      returnResults.value = []
+    outboundResults.value = (outbound as any)?.result?.verbindungen || []
+    localStorage.setItem('train-outbound', JSON.stringify(outboundResults.value))
+
+    let returnQuery = {}
+
+    if (tripType.value === 'roundtrip') {
+      const returnDateToUse =
+        returnInputType.value === 'date'
+          ? returnDate.value
+          : new Date(new Date(departureDate.value).setDate(new Date(departureDate.value).getDate() + Number(overnightStays.value)))
+              .toISOString()
+              .split('T')[0]
+
+      const returnRes = await $fetch('/api/amst-ham-bahn-routing', {
+        params: {
+          date: returnDateToUse + "T00:00:00",
+        }
+      })
+
+      returnResults.value = (returnRes as any)?.result?.verbindungen || []
+      localStorage.setItem('train-return', JSON.stringify(returnResults.value))
+
+      returnQuery =
+        returnInputType.value === 'date'
+          ? { return: returnDate.value }
+          : { overnight: overnightStays.value.toString() }
     }
 
-    returnQuery = returnInputType.value === 'date'
-      ? { return: returnDate.value }
-      : { overnight: overnightStays.value.toString() }
-  }
+    const query: Record<string, string> = {
+      tripType: tripType.value,
+      departure: departureDate.value,
+      ...returnQuery
+    }
 
-  const query: Record<string, string> = {
-    tripType: tripType.value,
-    departure: departureDate.value,
-    ...returnQuery
+    router.push({ path: '/results', query })
+  } catch (error) {
+    console.error('Error fetching Bahn data:', error)
+    alert('Failed to retrieve train data. Please try again.')
+  } finally {
+    isLoading.value = false
   }
-
-  router.push({ path: '/results', query })
 }
 
 const returnPreview = computed(() => {
@@ -82,6 +91,8 @@ const returnPreview = computed(() => {
   return null
 })
 </script>
+
+
 
 <template>
   <div class="min-h-screen grid place-items-center bg-gray-50 px-4 overflow-y-auto">
@@ -153,10 +164,12 @@ const returnPreview = computed(() => {
 
       <button
         @click="searchRoutes"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition flex items-center justify-center gap-2"
+        :disabled="isLoading"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-2 rounded-md transition flex items-center justify-center gap-2"
       >
-        <span>🔍</span>
-        <span>Find Connections</span>
+      <span v-if="isLoading" class="animate-spin rounded-full h-5 w-5 border-t-2 border-white border-opacity-75"></span>
+      <span v-else>🔍</span>
+      <span>{{ isLoading ? 'Searching...' : 'Find Connections' }}</span>
       </button>
     </div>
   </div>
