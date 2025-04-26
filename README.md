@@ -31,6 +31,14 @@ Solution to use the internal DB Api to get the connection between Hamburg and Am
 - Roundtrip planning with customizable overnight stays
 - Clean UI with tabular results display
 - Filters for duration, price, and number of changes
+- Cache results and displays it if already searched before.
+
+## 🔧 Improvements
+
+ - A bit more research on the Internal DB API to check for rate limits, and how many results can be queried.
+ - As it is an internal API, right now we are bound to client-side rendering.
+ - Add Earlier Connections, and Later Connections functionality to make more UI friendly.
+ - Move the localStorage caching to another caching mechanism to reduce page memory.
 
 ## 🛠 Tech Stack
 
