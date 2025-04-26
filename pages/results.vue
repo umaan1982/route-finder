@@ -31,26 +31,37 @@ const limitedReturn = computed(() =>
 )
 
 onMounted(() => {
-  const outboundRaw = localStorage.getItem('train-outbound')
+  const outboundCacheKey = getCacheKey('ham', 'amst', departureDate.value || '');
+  const outboundRaw = localStorage.getItem(outboundCacheKey);
   if (outboundRaw) {
     try {
-      outboundTrips.value = JSON.parse(outboundRaw)
-    } catch (e) {
-      console.error('Failed to parse outbound:', e)
-    }
+      outboundTrips.value = JSON.parse(outboundRaw);
+  } catch (e) {
+      console.error('Failed to parse outbound:', e);
   }
+}
 
   if (tripType.value === 'roundtrip') {
-    const returnRaw = localStorage.getItem('train-return')
+    const returnCacheKey = getCacheKey('amst', 'ham', returnDate.value || '');
+    const returnRaw = localStorage.getItem(returnCacheKey);
     if (returnRaw) {
       try {
-        returnTrips.value = JSON.parse(returnRaw)
+        returnTrips.value = JSON.parse(returnRaw);
       } catch (e) {
-        console.error('Failed to parse return:', e)
+        console.error('Failed to parse return:', e);
       }
-    }
+}
   }
 })
+
+function normalizeDatetime(input: string) {
+  if (input.length === 19) return input;
+  return input + ":00";
+}
+
+function getCacheKey(from: string, to: string, datetime: string) {
+  return `${from}-${to}-${normalizeDatetime(datetime)}`;
+}
 
 function sortTrips(trips: any[]) {
   return [...trips].sort((a, b) => {
