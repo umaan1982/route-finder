@@ -109,13 +109,13 @@ function formatTimeRange(trip: any) {
         <div v-if="departureDate" class="flex items-center gap-2">
           <span class="font-semibold text-blue-700">🚉 Departure:</span>
           <span class="text-gray-800">
-            {{ new Date(departureDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+            {{ new Date(departureDate).toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) }}
           </span>
         </div>
         <div v-if="tripType === 'roundtrip' && returnDate" class="flex items-center gap-2 mt-2 sm:mt-0">
           <span class="font-semibold text-green-700">🏠 Return:</span>
           <span class="text-gray-800">
-            {{ new Date(returnDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+            {{ new Date(returnDate).toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) }}
           </span>
         </div>
       </div>

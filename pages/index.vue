@@ -8,11 +8,30 @@ const returnDate = ref('')
 const returnInputType = ref<'date' | 'overnight'>('date')
 const overnightStays = ref(1)
 const router = useRouter()
-const today = new Date().toISOString().split('T')[0]
+const today = new Date().toISOString().slice(0, 16)
 const isLoading = ref(false)
 
 const outboundResults = useState<any[]>('outboundResults')
 const returnResults = useState<any[]>('returnResults')
+
+function getCacheKey(from: string, to: string, datetime: string) {
+  return `${from}-${to}-${normalizeDatetime(datetime)}`;
+}
+
+function normalizeDatetime(input: string) {
+  if (input.length === 19) return input;
+  return input + ":00";
+}
+
+function addDaysKeepingLocalTime(datetimeString: string, days: number) {
+  const [datePart, timePart] = datetimeString.split('T');
+  const date = new Date(datePart + 'T00:00');
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T${timePart}`;
+}
 
 async function searchRoutes() {
   if (!departureDate.value) {
@@ -23,36 +42,44 @@ async function searchRoutes() {
   isLoading.value = true
 
   try {
+    const outboundCacheKey = getCacheKey('ham', 'amst', departureDate.value);
+    const cachedOutbound = localStorage.getItem(outboundCacheKey);
 
-    const outbound = await $fetch('/api/ham-amst-bahn-routing', {
+    if (cachedOutbound) {
+      outboundResults.value = JSON.parse(cachedOutbound);
+    } else {
+      const outbound = await $fetch('/api/ham-amst-bahn-routing', {
       params: {
-        date: departureDate.value + "T00:00:00",
+        date: normalizeDatetime(departureDate.value),
       }
-    })
-
-    outboundResults.value = (outbound as any)?.verbindungen || []
-    localStorage.setItem('train-outbound', JSON.stringify(outboundResults.value))
+    });
+      outboundResults.value = (outbound as any)?.verbindungen || [];
+      localStorage.setItem(outboundCacheKey, JSON.stringify(outboundResults.value));
+    }
 
     let returnDateToUse = ''
 
     if (tripType.value === 'roundtrip') {
-      returnDateToUse =
-        returnInputType.value === 'date'
+        returnDateToUse =
+          returnInputType.value === 'date'
           ? returnDate.value
-          : new Date(new Date(departureDate.value).setDate(new Date(departureDate.value).getDate() + Number(overnightStays.value)))
-              .toISOString()
-              .split('T')[0]
+          : addDaysKeepingLocalTime(departureDate.value, Number(overnightStays.value));
 
-      const returnRes = await $fetch('/api/amst-ham-bahn-routing', {
+        const returnCacheKey = getCacheKey('amst', 'ham', returnDateToUse);
+        const cachedReturn = localStorage.getItem(returnCacheKey);
+
+      if (cachedReturn) {
+        returnResults.value = JSON.parse(cachedReturn);
+      } else {
+        const returnRes = await $fetch('/api/amst-ham-bahn-routing', {
         params: {
-          date: returnDateToUse + "T00:00:00",
-        }
-      })
-
-      returnResults.value = (returnRes as any)?.verbindungen || []
-      localStorage.setItem('train-return', JSON.stringify(returnResults.value))
+        date: normalizeDatetime(returnDateToUse),
+      }
+      });
+        returnResults.value = (returnRes as any)?.verbindungen || [];
+        localStorage.setItem(returnCacheKey, JSON.stringify(returnResults.value));
+      }
     }
-
     const query: Record<string, string> = {
       tripType: tripType.value,
       departure: departureDate.value,
@@ -78,11 +105,14 @@ const returnPreview = computed(() => {
   ) {
     const dep = new Date(departureDate.value)
     dep.setDate(dep.getDate() + overnightStays.value)
-    return dep.toLocaleDateString(undefined, {
+    return dep.toLocaleString(undefined, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     })
   }
   return null
@@ -116,7 +146,7 @@ const returnPreview = computed(() => {
       <div class="space-y-1">
         <label class="block text-sm font-medium text-gray-600">Departure Date</label>
         <input
-          type="date"
+          type="datetime-local"
           v-model="departureDate"
           :min="today"
           class="w-full px-4 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -138,7 +168,7 @@ const returnPreview = computed(() => {
         <div v-if="returnInputType === 'date'" class="space-y-1">
           <label class="block text-sm font-medium text-gray-600">Return Date</label>
           <input
-            type="date"
+            type="datetime-local"
             v-model="returnDate"
             :min="departureDate || today"
             class="w-full px-4 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
